@@ -134,6 +134,8 @@ public class SavedPolicyService {
      * 저장한 제도 목록 조회 (앱, 캘린더용). 저장한 제도 하나가 마감일/발표일을 동시에 가질 수 있어서,
      * 마감일이 있으면 마감일 카드 항목을, 발표일이 있으면 발표일 카드 항목을 각각 별도로 만든다.
      * D- 그룹(아직 지나지 않음)을 임박한 순으로 먼저, D+ 그룹(이미 지남)을 최근 지난 순으로 그 뒤에 이어붙인다.
+     * D-Day까지는 디데이/필요 서류를 그대로 내려주고, D+1부터는 디데이 배지와 필요 서류를 내려주지 않는다
+     * (프론트에서는 마감일 카드는 "제도 이름"만, 발표일 카드는 "제도 이름 결과 발표일"만 표시).
      */
     public List<AppSavedPolicyResponse> getAppList(Integer userId) {
         User user = getUserOrThrow(userId);
@@ -146,14 +148,17 @@ public class SavedPolicyService {
             if (policy.getApplicationDeadline() != null) {
                 LocalDate deadlineDate = policy.getApplicationDeadline().toLocalDate();
                 long diff = ChronoUnit.DAYS.between(today, deadlineDate);
-                List<String> documentNames = connectPolicyDocumentRepository.findByPolicy(policy).stream()
-                        .map(cpd -> cpd.getDocument().getDocumentName())
-                        .toList();
+                boolean isPast = diff < 0;
+                List<String> documentNames = isPast
+                        ? List.of()
+                        : connectPolicyDocumentRepository.findByPolicy(policy).stream()
+                                .map(cpd -> cpd.getDocument().getDocumentName())
+                                .toList();
                 entries.add(new AppCalendarEntry(
                         new AppSavedPolicyResponse(
                                 policy.getPolicyName(),
                                 deadlineDate.toString(),
-                                formatDDay(diff),
+                                isPast ? null : formatDDay(diff),
                                 documentNames,
                                 null,
                                 null),
@@ -163,9 +168,15 @@ public class SavedPolicyService {
             if (policy.getResultDate() != null) {
                 LocalDate resultDate = policy.getResultDate().toLocalDate();
                 long diff = ChronoUnit.DAYS.between(today, resultDate);
+                boolean isPast = diff < 0;
                 entries.add(new AppCalendarEntry(
                         new AppSavedPolicyResponse(
-                                policy.getPolicyName(), null, null, List.of(), resultDate.toString(), formatDDay(diff)),
+                                policy.getPolicyName(),
+                                null,
+                                null,
+                                List.of(),
+                                resultDate.toString(),
+                                isPast ? null : formatDDay(diff)),
                         diff));
             }
         }
@@ -177,11 +188,9 @@ public class SavedPolicyService {
                 .toList();
     }
 
+    /** diff(오늘부터 남은 일수)가 0 이상, 즉 아직 지나지 않은 날짜에 대해서만 호출된다. */
     private String formatDDay(long diff) {
-        if (diff == 0) {
-            return "D-Day";
-        }
-        return diff > 0 ? "D-" + diff : "D+" + Math.abs(diff);
+        return diff == 0 ? "D-Day" : "D-" + diff;
     }
 
     private record AppCalendarEntry(AppSavedPolicyResponse response, long diff) {}
