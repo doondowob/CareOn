@@ -7,9 +7,9 @@ import java.lang.annotation.Target;
 
 /**
  * 컨트롤러 메서드 파라미터에 붙이면, Authorization 헤더의 accessToken을 검증하고 userId를 주입해준다.
- * 예: public ResponseEntity<?> me(@CurrentUserId Integer userId) { ... }
+ * 예: public ResponseEntity<?> me(@CurrentCarerId Integer userId) { ... }
  */
 @Target(ElementType.PARAMETER)
 @Retention(RetentionPolicy.RUNTIME)
-public @interface CurrentUserId {
+public @interface CurrentCarerId {
 }

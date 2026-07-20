@@ -13,8 +13,8 @@ import com.youngkke.careon.domain.policy.dto.SavePolicyResponse;
 import com.youngkke.careon.domain.policy.dto.SavedPolicyResponse;
 import com.youngkke.careon.domain.todo.Todo;
 import com.youngkke.careon.domain.todo.TodoRepository;
-import com.youngkke.careon.domain.user.User;
-import com.youngkke.careon.domain.user.UserRepository;
+import com.youngkke.careon.domain.carer.Carer;
+import com.youngkke.careon.domain.carer.CarerRepository;
 import com.youngkke.careon.global.dto.MessageResponse;
 import com.youngkke.careon.global.error.BusinessException;
 import com.youngkke.careon.global.error.ErrorCode;
@@ -37,7 +37,7 @@ public class SavedPolicyService {
 
     private final SavedPolicyRepository savedPolicyRepository;
     private final PolicyRepository policyRepository;
-    private final UserRepository userRepository;
+    private final CarerRepository carerRepository;
     private final ConnectPolicyDocumentRepository connectPolicyDocumentRepository;
     private final DocumentIssueRepository documentIssueRepository;
     private final NotificationRepository notificationRepository;
@@ -46,18 +46,18 @@ public class SavedPolicyService {
     /** 제도 저장. 저장 성공 시 connect_policy_document 기준으로 필요 서류 투두를 자동 생성한다. */
     @Transactional
     public SavePolicyResponse save(Integer userId, SavePolicyRequest request) {
-        User user = getUserOrThrow(userId);
+        Carer carer = getCarerOrThrow(userId);
         Policy policy = policyRepository.findById(request.policyId())
                 .orElseThrow(() -> new BusinessException(ErrorCode.POLICY_NOT_FOUND));
 
-        if (savedPolicyRepository.existsByUserAndPolicy(user, policy)) {
+        if (savedPolicyRepository.existsByCarerAndPolicy(carer, policy)) {
             throw new BusinessException(ErrorCode.SAVED_POLICY_ALREADY_EXISTS);
         }
 
         SavedPolicy savedPolicy;
         try {
             savedPolicy = savedPolicyRepository.save(
-                    SavedPolicy.builder().user(user).policy(policy).build());
+                    SavedPolicy.builder().carer(carer).policy(policy).build());
         } catch (DataIntegrityViolationException e) {
             // 거의 동시에 두 번 저장 요청이 들어와 위의 existsBy 체크를 둘 다 통과한 경우,
             // DB의 (user_id, policy_id) 유니크 제약이 최종 방어선 역할을 한다.
@@ -79,9 +79,9 @@ public class SavedPolicyService {
     /** 제도 저장 취소. 본인 소유가 아니면 존재하지 않는 것으로 취급하고, 연관된 투두/알림도 함께 삭제한다. */
     @Transactional
     public MessageResponse cancel(Integer userId, Integer savedPolicyId) {
-        User user = getUserOrThrow(userId);
+        Carer carer = getCarerOrThrow(userId);
         SavedPolicy savedPolicy = savedPolicyRepository
-                .findBySavedPolicyIdAndUser(savedPolicyId, user)
+                .findBySavedPolicyIdAndCarer(savedPolicyId, carer)
                 .orElseThrow(() -> new BusinessException(ErrorCode.SAVED_POLICY_NOT_FOUND));
 
         notificationRepository.deleteAllBySavedPolicyIn(List.of(savedPolicy));
@@ -93,8 +93,8 @@ public class SavedPolicyService {
 
     /** 저장한 제도 목록 조회 (웹). */
     public List<SavedPolicyResponse> getWebList(Integer userId) {
-        User user = getUserOrThrow(userId);
-        return savedPolicyRepository.findAllByUser(user).stream()
+        Carer carer = getCarerOrThrow(userId);
+        return savedPolicyRepository.findAllByCarer(carer).stream()
                 .map(this::toSavedPolicyResponse)
                 .toList();
     }
@@ -138,11 +138,11 @@ public class SavedPolicyService {
      * (프론트에서는 마감일 카드는 "제도 이름"만, 발표일 카드는 "제도 이름 결과 발표일"만 표시).
      */
     public List<AppSavedPolicyResponse> getAppList(Integer userId) {
-        User user = getUserOrThrow(userId);
+        Carer carer = getCarerOrThrow(userId);
         LocalDate today = LocalDate.now(ZoneId.of("Asia/Seoul"));
 
         List<AppCalendarEntry> entries = new ArrayList<>();
-        for (SavedPolicy savedPolicy : savedPolicyRepository.findAllByUser(user)) {
+        for (SavedPolicy savedPolicy : savedPolicyRepository.findAllByCarer(carer)) {
             Policy policy = savedPolicy.getPolicy();
 
             if (policy.getApplicationDeadline() != null) {
@@ -195,7 +195,7 @@ public class SavedPolicyService {
 
     private record AppCalendarEntry(AppSavedPolicyResponse response, long diff) {}
 
-    private User getUserOrThrow(Integer userId) {
-        return userRepository.findById(userId).orElseThrow(() -> new BusinessException(ErrorCode.UNAUTHORIZED));
+    private Carer getCarerOrThrow(Integer userId) {
+        return carerRepository.findById(userId).orElseThrow(() -> new BusinessException(ErrorCode.UNAUTHORIZED));
     }
 }

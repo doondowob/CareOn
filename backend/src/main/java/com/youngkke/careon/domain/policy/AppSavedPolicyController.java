@@ -1,7 +1,7 @@
 package com.youngkke.careon.domain.policy;
 
 import com.youngkke.careon.domain.policy.dto.AppSavedPolicyResponse;
-import com.youngkke.careon.global.auth.CurrentUserId;
+import com.youngkke.careon.global.auth.CurrentCarerId;
 import java.util.List;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
@@ -17,7 +17,7 @@ public class AppSavedPolicyController {
     private final SavedPolicyService savedPolicyService;
 
     @GetMapping
-    public ResponseEntity<List<AppSavedPolicyResponse>> getList(@CurrentUserId Integer userId) {
+    public ResponseEntity<List<AppSavedPolicyResponse>> getList(@CurrentCarerId Integer userId) {
         return ResponseEntity.ok(savedPolicyService.getAppList(userId));
     }
 }

@@ -1,6 +1,6 @@
 package com.youngkke.careon.domain.policy;
 
-import com.youngkke.careon.domain.user.User;
+import com.youngkke.careon.domain.carer.Carer;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.FetchType;
@@ -27,12 +27,12 @@ public class InterestPolicyType {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    @Column(name = "id")
-    private Integer id;
+    @Column(name = "interest_policy_type_id")
+    private Integer interestPolicyTypeId;
 
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "user_id", nullable = false)
-    private User user;
+    @JoinColumn(name = "carer_id", nullable = false)
+    private Carer carer;
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "policy_type_id", nullable = false)

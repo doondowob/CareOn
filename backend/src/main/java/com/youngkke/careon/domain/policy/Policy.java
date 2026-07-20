@@ -79,4 +79,48 @@ public class Policy {
 
     @Column(name = "contact", length = 100)
     private String contact;
+
+    // ===== 이하 신규 컬럼 (아직 로직 미사용, 스키마 매핑용) =====
+
+    @Column(name = "deadline_type", length = 50)
+    private String deadlineType;
+
+    @Column(name = "application_region", length = 30)
+    private String applicationRegion;
+
+    @Column(name = "schedule_type", length = 20)
+    private String scheduleType;
+
+    @Column(name = "age_min")
+    private Integer ageMin;
+
+    @Column(name = "age_max")
+    private Integer ageMax;
+
+    @Column(name = "exception_age", length = 100)
+    private String exceptionAge;
+
+    @Column(name = "income_criteria", length = 100)
+    private String incomeCriteria;
+
+    @Column(name = "qualification_text", columnDefinition = "TEXT")
+    private String qualificationText;
+
+    @Column(name = "support_target", columnDefinition = "TEXT")
+    private String supportTarget;
+
+    @Column(name = "duplication_restriction", columnDefinition = "TEXT")
+    private String duplicationRestriction;
+
+    @Column(name = "original_notice", columnDefinition = "TEXT")
+    private String originalNotice;
+
+    @Column(name = "last_checked_at")
+    private LocalDateTime lastCheckedAt;
+
+    @Column(name = "info_reference_year")
+    private Integer infoReferenceYear;
+
+    @Column(name = "is_lifetime_limit_once")
+    private Boolean isLifetimeLimitOnce;
 }

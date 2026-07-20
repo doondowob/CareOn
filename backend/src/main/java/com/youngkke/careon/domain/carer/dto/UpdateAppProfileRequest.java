@@ -1,12 +1,12 @@
-package com.youngkke.careon.domain.user.dto;
+package com.youngkke.careon.domain.carer.dto;
 
 import com.youngkke.careon.global.validation.ValidationPatterns;
 import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.Pattern;
 import jakarta.validation.constraints.Size;
 
-/** PATCH /api/web/users/me 요청 body. 모든 필드 optional (보내면 수정, 안 보내면 유지). */
-public record UpdateWebProfileRequest(
+/** PATCH /api/app/users/me 요청 body. 모든 필드 optional (앱은 화면마다 필드 하나씩만 보냄). */
+public record UpdateAppProfileRequest(
 
         @Size(max = 50)
         String name,
@@ -19,6 +19,8 @@ public record UpdateWebProfileRequest(
         String password,
 
         @Size(max = 20)
-        String region
+        String region,
+
+        Boolean notificationEnabled
 ) {
 }
