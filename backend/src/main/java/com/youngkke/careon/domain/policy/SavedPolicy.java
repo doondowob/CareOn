@@ -1,6 +1,6 @@
 package com.youngkke.careon.domain.policy;
 
-import com.youngkke.careon.domain.user.User;
+import com.youngkke.careon.domain.carer.Carer;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.FetchType;
@@ -24,7 +24,7 @@ import lombok.NoArgsConstructor;
 @Entity
 @Table(
         name = "saved_policies",
-        uniqueConstraints = @UniqueConstraint(columnNames = {"user_id", "policy_id"}))
+        uniqueConstraints = @UniqueConstraint(columnNames = {"carer_id", "policy_id"}))
 @Getter
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 @AllArgsConstructor(access = AccessLevel.PRIVATE)
@@ -37,8 +37,8 @@ public class SavedPolicy {
     private Integer savedPolicyId;
 
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "user_id", nullable = false)
-    private User user;
+    @JoinColumn(name = "carer_id", nullable = false)
+    private Carer carer;
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "policy_id", nullable = false)

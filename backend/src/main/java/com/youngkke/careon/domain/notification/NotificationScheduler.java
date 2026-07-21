@@ -3,7 +3,7 @@ package com.youngkke.careon.domain.notification;
 import com.youngkke.careon.domain.policy.Policy;
 import com.youngkke.careon.domain.policy.SavedPolicy;
 import com.youngkke.careon.domain.policy.SavedPolicyRepository;
-import com.youngkke.careon.domain.user.User;
+import com.youngkke.careon.domain.carer.Carer;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.ZoneId;
@@ -38,8 +38,8 @@ public class NotificationScheduler {
         int created = 0;
 
         for (SavedPolicy savedPolicy : savedPolicyRepository.findAll()) {
-            User user = savedPolicy.getUser();
-            if (!user.isNotificationEnabled()) {
+            Carer carer = savedPolicy.getCarer();
+            if (!carer.isNotificationEnabled()) {
                 continue;
             }
 

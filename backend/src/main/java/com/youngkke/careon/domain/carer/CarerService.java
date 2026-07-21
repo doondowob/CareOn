@@ -1,4 +1,4 @@
-package com.youngkke.careon.domain.user;
+package com.youngkke.careon.domain.carer;
 
 import com.youngkke.careon.domain.notification.NotificationRepository;
 import com.youngkke.careon.domain.policy.InterestPolicyType;
@@ -8,20 +8,20 @@ import com.youngkke.careon.domain.policy.PolicyTypeRepository;
 import com.youngkke.careon.domain.policy.SavedPolicy;
 import com.youngkke.careon.domain.policy.SavedPolicyRepository;
 import com.youngkke.careon.domain.todo.TodoRepository;
-import com.youngkke.careon.domain.user.dto.AppInstallStatusRequest;
-import com.youngkke.careon.domain.user.dto.AppLoginResponse;
-import com.youngkke.careon.domain.user.dto.AppMeResponse;
-import com.youngkke.careon.domain.user.dto.LoginRequest;
-import com.youngkke.careon.domain.user.dto.PasswordResetLinkRequest;
-import com.youngkke.careon.domain.user.dto.PasswordResetRequest;
-import com.youngkke.careon.domain.user.dto.RefreshTokenRequest;
-import com.youngkke.careon.domain.user.dto.RefreshTokenResponse;
-import com.youngkke.careon.domain.user.dto.SignupRequest;
-import com.youngkke.careon.domain.user.dto.SignupResponse;
-import com.youngkke.careon.domain.user.dto.UpdateAppProfileRequest;
-import com.youngkke.careon.domain.user.dto.UpdateWebProfileRequest;
-import com.youngkke.careon.domain.user.dto.WebLoginResponse;
-import com.youngkke.careon.domain.user.dto.WebMeResponse;
+import com.youngkke.careon.domain.carer.dto.AppInstallStatusRequest;
+import com.youngkke.careon.domain.carer.dto.AppLoginResponse;
+import com.youngkke.careon.domain.carer.dto.AppMeResponse;
+import com.youngkke.careon.domain.carer.dto.LoginRequest;
+import com.youngkke.careon.domain.carer.dto.PasswordResetLinkRequest;
+import com.youngkke.careon.domain.carer.dto.PasswordResetRequest;
+import com.youngkke.careon.domain.carer.dto.RefreshTokenRequest;
+import com.youngkke.careon.domain.carer.dto.RefreshTokenResponse;
+import com.youngkke.careon.domain.carer.dto.SignupRequest;
+import com.youngkke.careon.domain.carer.dto.SignupResponse;
+import com.youngkke.careon.domain.carer.dto.UpdateAppProfileRequest;
+import com.youngkke.careon.domain.carer.dto.UpdateWebProfileRequest;
+import com.youngkke.careon.domain.carer.dto.WebLoginResponse;
+import com.youngkke.careon.domain.carer.dto.WebMeResponse;
 import com.youngkke.careon.global.auth.JwtProvider;
 import com.youngkke.careon.global.dto.MessageResponse;
 import com.youngkke.careon.global.error.BusinessException;
@@ -41,9 +41,9 @@ import org.springframework.transaction.annotation.Transactional;
 @Service
 @RequiredArgsConstructor
 @Transactional(readOnly = true)
-public class UserService {
+public class CarerService {
 
-    private final UserRepository userRepository;
+    private final CarerRepository carerRepository;
     private final PolicyTypeRepository policyTypeRepository;
     private final InterestPolicyTypeRepository interestPolicyTypeRepository;
     private final SavedPolicyRepository savedPolicyRepository;
@@ -57,7 +57,7 @@ public class UserService {
 
     @Transactional
     public SignupResponse signup(SignupRequest request) {
-        if (userRepository.existsByEmail(request.email())) {
+        if (carerRepository.existsByEmail(request.email())) {
             throw new BusinessException(ErrorCode.EMAIL_ALREADY_EXISTS);
         }
 
@@ -66,7 +66,7 @@ public class UserService {
                         .orElseThrow(() -> new BusinessException(ErrorCode.POLICY_TYPE_NOT_FOUND)))
                 .toList();
 
-        User user = User.builder()
+        Carer carer = Carer.builder()
                 .name(request.name())
                 .email(request.email())
                 .password(passwordEncoder.encode(request.password()))
@@ -77,42 +77,42 @@ public class UserService {
                 .notificationEnabled(true)
                 .diagnosisCompleted(false)
                 .build();
-        userRepository.save(user);
+        carerRepository.save(carer);
 
         for (PolicyType policyType : policyTypes) {
             interestPolicyTypeRepository.save(InterestPolicyType.builder()
-                    .user(user)
+                    .carer(carer)
                     .policyType(policyType)
                     .build());
         }
 
         String accessToken =
-                jwtProvider.createAccessToken(user.getUserId(), jwtProvider.getWebAccessTokenValiditySeconds());
+                jwtProvider.createAccessToken(carer.getCarerId(), jwtProvider.getWebAccessTokenValiditySeconds());
 
-        return new SignupResponse(user.getUserId(), accessToken, user.isDiagnosisCompleted());
+        return new SignupResponse(carer.getCarerId(), accessToken, carer.isDiagnosisCompleted());
     }
 
     public WebLoginResponse loginWeb(LoginRequest request) {
-        User user = authenticate(request);
+        Carer carer = authenticate(request);
         String accessToken =
-                jwtProvider.createAccessToken(user.getUserId(), jwtProvider.getWebAccessTokenValiditySeconds());
-        return new WebLoginResponse(user.getUserId(), accessToken, user.isDiagnosisCompleted());
+                jwtProvider.createAccessToken(carer.getCarerId(), jwtProvider.getWebAccessTokenValiditySeconds());
+        return new WebLoginResponse(carer.getCarerId(), accessToken, carer.isDiagnosisCompleted());
     }
 
     @Transactional
     public AppLoginResponse loginApp(LoginRequest request) {
-        User user = authenticate(request);
+        Carer carer = authenticate(request);
         String accessToken =
-                jwtProvider.createAccessToken(user.getUserId(), jwtProvider.getAppAccessTokenValiditySeconds());
-        String refreshToken = jwtProvider.createRefreshToken(user.getUserId());
-        user.updateRefreshToken(refreshToken, toKstLocalDateTime(jwtProvider.getRefreshTokenExpiry()));
-        return new AppLoginResponse(user.getUserId(), accessToken, refreshToken);
+                jwtProvider.createAccessToken(carer.getCarerId(), jwtProvider.getAppAccessTokenValiditySeconds());
+        String refreshToken = jwtProvider.createRefreshToken(carer.getCarerId());
+        carer.updateRefreshToken(refreshToken, toKstLocalDateTime(jwtProvider.getRefreshTokenExpiry()));
+        return new AppLoginResponse(carer.getCarerId(), accessToken, refreshToken);
     }
 
     @Transactional
     public MessageResponse logout(Integer userId) {
-        User user = getUserOrThrow(userId);
-        user.clearRefreshToken();
+        Carer carer = getCarerOrThrow(userId);
+        carer.clearRefreshToken();
         return new MessageResponse("로그아웃되었습니다.");
     }
 
@@ -128,71 +128,71 @@ public class UserService {
             if (!jwtProvider.isRefreshToken(refreshToken)) {
                 throw new BusinessException(ErrorCode.REFRESH_TOKEN_INVALID);
             }
-            userId = jwtProvider.getUserId(refreshToken);
+            userId = jwtProvider.getCarerId(refreshToken);
         } catch (JwtException e) {
             throw new BusinessException(ErrorCode.REFRESH_TOKEN_INVALID);
         }
 
-        User user = userRepository.findById(userId)
+        Carer carer = carerRepository.findById(userId)
                 .orElseThrow(() -> new BusinessException(ErrorCode.REFRESH_TOKEN_INVALID));
 
         // 기존에 발급했던 refreshToken과 다르면(이미 재발급되어 교체됐거나 위조된 경우) 거부한다.
-        if (!refreshToken.equals(user.getRefreshToken())) {
+        if (!refreshToken.equals(carer.getRefreshToken())) {
             throw new BusinessException(ErrorCode.REFRESH_TOKEN_INVALID);
         }
 
         String newAccessToken =
                 jwtProvider.createAccessToken(userId, jwtProvider.getAppAccessTokenValiditySeconds());
         String newRefreshToken = jwtProvider.createRefreshToken(userId);
-        user.updateRefreshToken(newRefreshToken, toKstLocalDateTime(jwtProvider.getRefreshTokenExpiry()));
+        carer.updateRefreshToken(newRefreshToken, toKstLocalDateTime(jwtProvider.getRefreshTokenExpiry()));
 
         return new RefreshTokenResponse(newAccessToken, newRefreshToken);
     }
 
     public WebMeResponse getWebMe(Integer userId) {
-        User user = getUserOrThrow(userId);
+        Carer carer = getCarerOrThrow(userId);
         return new WebMeResponse(
-                user.getUserId(),
-                user.getName(),
-                user.getEmail(),
-                user.getRegion(),
-                user.isDiagnosisCompleted(),
-                user.isAppInstalled(),
-                user.getInstallPromptCount());
+                carer.getCarerId(),
+                carer.getName(),
+                carer.getEmail(),
+                carer.getRegion(),
+                carer.isDiagnosisCompleted(),
+                carer.isAppInstalled(),
+                carer.getInstallPromptCount());
     }
 
     public AppMeResponse getAppMe(Integer userId) {
-        User user = getUserOrThrow(userId);
+        Carer carer = getCarerOrThrow(userId);
         return new AppMeResponse(
-                user.getUserId(), user.getName(), user.getEmail(), user.getRegion(), user.isNotificationEnabled());
+                carer.getCarerId(), carer.getName(), carer.getEmail(), carer.getRegion(), carer.isNotificationEnabled());
     }
 
     @Transactional
     public MessageResponse updateWebProfile(Integer userId, UpdateWebProfileRequest request) {
-        User user = getUserOrThrow(userId);
-        checkEmailDuplicate(user, request.email());
+        Carer carer = getCarerOrThrow(userId);
+        checkEmailDuplicate(carer, request.email());
         String encodedPassword = encodeIfPresent(request.password());
-        user.updateProfile(request.name(), request.email(), encodedPassword, request.region(), null);
+        carer.updateProfile(request.name(), request.email(), encodedPassword, request.region(), null);
         return new MessageResponse("회원 정보가 수정되었습니다.");
     }
 
     @Transactional
     public MessageResponse updateAppProfile(Integer userId, UpdateAppProfileRequest request) {
-        User user = getUserOrThrow(userId);
-        checkEmailDuplicate(user, request.email());
+        Carer carer = getCarerOrThrow(userId);
+        checkEmailDuplicate(carer, request.email());
         String encodedPassword = encodeIfPresent(request.password());
-        user.updateProfile(
+        carer.updateProfile(
                 request.name(), request.email(), encodedPassword, request.region(), request.notificationEnabled());
         return new MessageResponse("회원 정보가 수정되었습니다.");
     }
 
     @Transactional
     public MessageResponse updateAppInstallStatus(Integer userId, AppInstallStatusRequest request) {
-        User user = getUserOrThrow(userId);
+        Carer carer = getCarerOrThrow(userId);
         if (Boolean.TRUE.equals(request.installed())) {
-            user.markAppInstalled();
+            carer.markAppInstalled();
         } else {
-            user.increaseInstallPromptCount();
+            carer.increaseInstallPromptCount();
         }
         return new MessageResponse("처리되었습니다.");
     }
@@ -200,16 +200,16 @@ public class UserService {
     /** 회원 탈퇴(웹/앱 공통). 연관된 saved_policies/todos/notifications/interest_policy_types를 먼저 정리한 뒤 유저를 삭제한다. */
     @Transactional
     public MessageResponse withdraw(Integer userId) {
-        User user = getUserOrThrow(userId);
+        Carer carer = getCarerOrThrow(userId);
 
-        List<SavedPolicy> savedPolicies = savedPolicyRepository.findAllByUser(user);
+        List<SavedPolicy> savedPolicies = savedPolicyRepository.findAllByCarer(carer);
         if (!savedPolicies.isEmpty()) {
             notificationRepository.deleteAllBySavedPolicyIn(savedPolicies);
             todoRepository.deleteAllBySavedPolicyIn(savedPolicies);
-            savedPolicyRepository.deleteAllByUser(user);
+            savedPolicyRepository.deleteAllByCarer(carer);
         }
-        interestPolicyTypeRepository.deleteAllByUser(user);
-        userRepository.delete(user);
+        interestPolicyTypeRepository.deleteAllByCarer(carer);
+        carerRepository.delete(carer);
 
         return new MessageResponse("회원 탈퇴가 완료되었습니다.");
     }
@@ -220,29 +220,29 @@ public class UserService {
      */
     @Transactional
     public MessageResponse sendPasswordResetLink(PasswordResetLinkRequest request) {
-        userRepository.findByEmail(request.email()).ifPresent(user -> {
+        carerRepository.findByEmail(request.email()).ifPresent(carer -> {
             String resetToken = UUID.randomUUID().toString().replace("-", "");
-            user.issueResetToken(resetToken, LocalDateTime.now(ZoneId.of("Asia/Seoul")).plusMinutes(RESET_TOKEN_VALIDITY_MINUTES));
-            mailService.sendPasswordResetEmail(user.getEmail(), resetToken);
+            carer.issueResetToken(resetToken, LocalDateTime.now(ZoneId.of("Asia/Seoul")).plusMinutes(RESET_TOKEN_VALIDITY_MINUTES));
+            mailService.sendPasswordResetEmail(carer.getEmail(), resetToken);
         });
         return new MessageResponse("비밀번호 재설정을 위해 이메일을 확인해보세요.");
     }
 
     @Transactional
     public MessageResponse resetPassword(PasswordResetRequest request) {
-        User user = userRepository.findByResetToken(request.resetToken())
+        Carer carer = carerRepository.findByResetToken(request.resetToken())
                 .filter(u -> u.getResetTokenExpiresAt() != null
                         && u.getResetTokenExpiresAt().isAfter(LocalDateTime.now(ZoneId.of("Asia/Seoul"))))
                 .orElseThrow(() -> new BusinessException(ErrorCode.RESET_LINK_INVALID));
 
-        user.updateProfile(null, null, passwordEncoder.encode(request.newPassword()), null, null);
-        user.clearResetToken();
+        carer.updateProfile(null, null, passwordEncoder.encode(request.newPassword()), null, null);
+        carer.clearResetToken();
 
         return new MessageResponse("비밀번호가 재설정되었습니다.");
     }
 
-    private void checkEmailDuplicate(User user, String newEmail) {
-        if (newEmail != null && !newEmail.equalsIgnoreCase(user.getEmail()) && userRepository.existsByEmail(newEmail)) {
+    private void checkEmailDuplicate(Carer carer, String newEmail) {
+        if (newEmail != null && !newEmail.equalsIgnoreCase(carer.getEmail()) && carerRepository.existsByEmail(newEmail)) {
             throw new BusinessException(ErrorCode.EMAIL_ALREADY_EXISTS);
         }
     }
@@ -251,17 +251,17 @@ public class UserService {
         return rawPassword != null ? passwordEncoder.encode(rawPassword) : null;
     }
 
-    private User getUserOrThrow(Integer userId) {
-        return userRepository.findById(userId).orElseThrow(() -> new BusinessException(ErrorCode.UNAUTHORIZED));
+    private Carer getCarerOrThrow(Integer userId) {
+        return carerRepository.findById(userId).orElseThrow(() -> new BusinessException(ErrorCode.UNAUTHORIZED));
     }
 
-    private User authenticate(LoginRequest request) {
-        User user = userRepository.findByEmail(request.email())
+    private Carer authenticate(LoginRequest request) {
+        Carer carer = carerRepository.findByEmail(request.email())
                 .orElseThrow(() -> new BusinessException(ErrorCode.LOGIN_FAILED));
-        if (!passwordEncoder.matches(request.password(), user.getPassword())) {
+        if (!passwordEncoder.matches(request.password(), carer.getPassword())) {
             throw new BusinessException(ErrorCode.LOGIN_FAILED);
         }
-        return user;
+        return carer;
     }
 
     private LocalDateTime toKstLocalDateTime(Instant instant) {

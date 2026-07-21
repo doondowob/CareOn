@@ -1,4 +1,4 @@
-package com.youngkke.careon.domain.user.dto;
+package com.youngkke.careon.domain.carer.dto;
 
 import com.youngkke.careon.global.validation.ValidationPatterns;
 import jakarta.validation.constraints.NotBlank;
