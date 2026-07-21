@@ -2,8 +2,8 @@ package com.youngkke.careon.domain.notification;
 
 import com.youngkke.careon.domain.notification.dto.NotificationResponse;
 import com.youngkke.careon.domain.policy.Policy;
-import com.youngkke.careon.domain.user.User;
-import com.youngkke.careon.domain.user.UserRepository;
+import com.youngkke.careon.domain.carer.Carer;
+import com.youngkke.careon.domain.carer.CarerRepository;
 import com.youngkke.careon.global.error.BusinessException;
 import com.youngkke.careon.global.error.ErrorCode;
 import java.time.Duration;
@@ -23,13 +23,13 @@ public class NotificationService {
     private static final ZoneOffset KST = ZoneOffset.of("+09:00");
 
     private final NotificationRepository notificationRepository;
-    private final UserRepository userRepository;
+    private final CarerRepository carerRepository;
 
     /** 알림 목록 조회 (최신순). 조회와 동시에 전부 읽음 처리한다 (별도 읽음 처리 API 없음). */
     @Transactional
     public List<NotificationResponse> getList(Integer userId) {
-        User user = getUserOrThrow(userId);
-        List<Notification> notifications = notificationRepository.findAllBySavedPolicy_UserOrderBySentAtDesc(user);
+        Carer carer = getCarerOrThrow(userId);
+        List<Notification> notifications = notificationRepository.findAllBySavedPolicy_CarerOrderBySentAtDesc(carer);
 
         LocalDateTime now = LocalDateTime.now(ZoneId.of("Asia/Seoul"));
         List<NotificationResponse> responses =
@@ -79,7 +79,7 @@ public class NotificationService {
         return (days / 365) + "년 전";
     }
 
-    private User getUserOrThrow(Integer userId) {
-        return userRepository.findById(userId).orElseThrow(() -> new BusinessException(ErrorCode.UNAUTHORIZED));
+    private Carer getCarerOrThrow(Integer userId) {
+        return carerRepository.findById(userId).orElseThrow(() -> new BusinessException(ErrorCode.UNAUTHORIZED));
     }
 }

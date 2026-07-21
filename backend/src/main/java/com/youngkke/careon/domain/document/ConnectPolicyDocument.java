@@ -27,8 +27,8 @@ public class ConnectPolicyDocument {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    @Column(name = "id")
-    private Integer id;
+    @Column(name = "connect_policy_document_id")
+    private Integer connectPolicyDocumentId;
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "policy_id", nullable = false)

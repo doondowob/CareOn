@@ -52,7 +52,7 @@ public class JwtProvider {
     }
 
     /** 토큰의 subject(userId)를 반환한다. 서명/만료가 유효하지 않으면 io.jsonwebtoken.JwtException이 발생한다. */
-    public Integer getUserId(String token) {
+    public Integer getCarerId(String token) {
         return Integer.valueOf(parseClaims(token).getSubject());
     }
 

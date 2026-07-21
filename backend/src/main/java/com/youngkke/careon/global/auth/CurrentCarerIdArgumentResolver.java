@@ -14,7 +14,7 @@ import org.springframework.web.method.support.ModelAndViewContainer;
 
 @Component
 @RequiredArgsConstructor
-public class CurrentUserIdArgumentResolver implements HandlerMethodArgumentResolver {
+public class CurrentCarerIdArgumentResolver implements HandlerMethodArgumentResolver {
 
     private static final String AUTHORIZATION_HEADER = "Authorization";
     private static final String BEARER_PREFIX = "Bearer ";
@@ -23,7 +23,7 @@ public class CurrentUserIdArgumentResolver implements HandlerMethodArgumentResol
 
     @Override
     public boolean supportsParameter(MethodParameter parameter) {
-        return parameter.hasParameterAnnotation(CurrentUserId.class)
+        return parameter.hasParameterAnnotation(CurrentCarerId.class)
                 && parameter.getParameterType().equals(Integer.class);
     }
 
@@ -44,7 +44,7 @@ public class CurrentUserIdArgumentResolver implements HandlerMethodArgumentResol
             if (!jwtProvider.isAccessToken(token)) {
                 throw new BusinessException(ErrorCode.UNAUTHORIZED);
             }
-            return jwtProvider.getUserId(token);
+            return jwtProvider.getCarerId(token);
         } catch (JwtException e) {
             throw new BusinessException(ErrorCode.UNAUTHORIZED);
         }

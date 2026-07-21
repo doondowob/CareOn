@@ -1,6 +1,6 @@
 package com.youngkke.careon.global.config;
 
-import com.youngkke.careon.global.auth.CurrentUserIdArgumentResolver;
+import com.youngkke.careon.global.auth.CurrentCarerIdArgumentResolver;
 import java.util.List;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Configuration;
@@ -12,11 +12,11 @@ import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
 @RequiredArgsConstructor
 public class WebConfig implements WebMvcConfigurer {
 
-    private final CurrentUserIdArgumentResolver currentUserIdArgumentResolver;
+    private final CurrentCarerIdArgumentResolver currentCarerIdArgumentResolver;
 
     @Override
     public void addArgumentResolvers(List<HandlerMethodArgumentResolver> resolvers) {
-        resolvers.add(currentUserIdArgumentResolver);
+        resolvers.add(currentCarerIdArgumentResolver);
     }
 
     /**

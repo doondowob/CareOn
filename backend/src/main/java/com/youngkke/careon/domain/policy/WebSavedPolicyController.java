@@ -3,7 +3,7 @@ package com.youngkke.careon.domain.policy;
 import com.youngkke.careon.domain.policy.dto.SavePolicyRequest;
 import com.youngkke.careon.domain.policy.dto.SavePolicyResponse;
 import com.youngkke.careon.domain.policy.dto.SavedPolicyResponse;
-import com.youngkke.careon.global.auth.CurrentUserId;
+import com.youngkke.careon.global.auth.CurrentCarerId;
 import com.youngkke.careon.global.dto.MessageResponse;
 import jakarta.validation.Valid;
 import java.util.List;
@@ -25,19 +25,19 @@ public class WebSavedPolicyController {
     private final SavedPolicyService savedPolicyService;
 
     @GetMapping
-    public ResponseEntity<List<SavedPolicyResponse>> getList(@CurrentUserId Integer userId) {
+    public ResponseEntity<List<SavedPolicyResponse>> getList(@CurrentCarerId Integer userId) {
         return ResponseEntity.ok(savedPolicyService.getWebList(userId));
     }
 
     @PostMapping
     public ResponseEntity<SavePolicyResponse> save(
-            @CurrentUserId Integer userId, @Valid @RequestBody SavePolicyRequest request) {
+            @CurrentCarerId Integer userId, @Valid @RequestBody SavePolicyRequest request) {
         return ResponseEntity.ok(savedPolicyService.save(userId, request));
     }
 
     @DeleteMapping("/{savedPolicyId}")
     public ResponseEntity<MessageResponse> cancel(
-            @CurrentUserId Integer userId, @PathVariable Integer savedPolicyId) {
+            @CurrentCarerId Integer userId, @PathVariable Integer savedPolicyId) {
         return ResponseEntity.ok(savedPolicyService.cancel(userId, savedPolicyId));
     }
 }
